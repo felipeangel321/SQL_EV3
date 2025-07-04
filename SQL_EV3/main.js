@@ -7,9 +7,9 @@
 // ====== CONFIGURACIÓN SUPABASE ======
 // Reemplaza 'https://TU_SUPABASE_URL.supabase.co' por la URL de tu proyecto Supabase
 // Ejemplo: 'https://abcd1234.supabase.co'
-const SUPABASE_URL = 'https://TU_SUPABASE_URL.supabase.co'; // <-- PON AQUÍ TU URL DE SUPABASE
+const SUPABASE_URL = 'https://ismpkafjjxdhzbpactwt.supabase.co'; // <-- PON AQUÍ TU URL DE SUPABASE
 // Reemplaza 'TU_SUPABASE_KEY' por tu API Key de Supabase (puedes usar la anon/public key para pruebas)
-const SUPABASE_KEY = 'TU_SUPABASE_KEY'; // <-- PON AQUÍ TU API KEY DE SUPABASE
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzbXBrYWZqanhkaHpicGFjdHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwODY1MTgsImV4cCI6MjA2NTY2MjUxOH0.NE8ETwvC8c5a8zNFnQGD_CZGzNC-J8gXiUzmKMWkVeA'; // <-- PON AQUÍ TU API KEY DE SUPABASE
 
 // ====== ELEMENTOS DOM ======
 // Obtiene referencias a los elementos del DOM para mostrar/ocultar secciones
@@ -155,6 +155,63 @@ function renderChart() {
     }
   });
 }
+//funcionsita para ver los mas vendidos por sucursal
+async function graficarMasVendidoPorSucursal() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/Vista_MasVendidoPorSucursal`, {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      Accept: 'application/json'
+    }
+  });
+  const data = await res.json();
+  const labels = data.map(row => `${row.Nombre_Sucursal}: ${row.Nombre_Producto}`);
+  const values = data.map(row => row.Total_Vendido);
 
+  const ctx = document.getElementById('graficoSucursal').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Producto más vendido por sucursal',
+        data: values,
+        backgroundColor: 'rgba(38, 70, 83, 0.7)',
+        borderColor: 'rgba(38, 70, 83, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
+  });
+}
+//funcionsita para ver los mayores a 40 mil
+async function graficarComprasAltas() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/Vista_Compras_MayoresCuarenta`, {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      Accept: 'application/json'
+    }
+  });
+  const data = await res.json();
+  const labels = data.map(row => `Compra #${row.Id_Compra} - ${row.Nombre_Cliente}`);
+  const values = data.map(row => row.Total);
+
+  const ctx = document.getElementById('graficoComprasAltas').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Compras mayores a $40.000',
+        data: values,
+        backgroundColor: 'rgba(231, 111, 81, 0.7)',
+        borderColor: 'rgba(231, 111, 81, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
+  });
+}
 // ====== FIN DEL ARCHIVO ======
 // Personaliza los textos y colores a tu preferencia. 
