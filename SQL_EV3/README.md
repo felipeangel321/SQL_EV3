@@ -239,8 +239,8 @@ Las contribuciones son bienvenidas. Por favor:
 Para soporte técnico o preguntas sobre el proyecto:
 
 - **Email**: [tu-email@ejemplo.com]
-- **GitHub Issues**: [URL_DEL_REPOSITORIO]/issues
-- **Documentación**: [URL_DE_DOCUMENTACION]
+- **GitHub Issues**: [https://github.com/felipeangel321/SQL_EV3.git]/issues
+- **Documentación**: [https://github.com/felipeangel321/SQL_EV3.git]
 
 ---
 
