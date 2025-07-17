@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard KFC - Análisis de Ventas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .custom-shadow { box-shadow: 0 4px 24px 0 rgba(220,38,38,0.15); }
+    .chart-container { position: relative; height:250px; width:100%; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-white via-red-50 to-gray-100">
+  <header class="flex justify-between items-center p-6 bg-red-600 text-white shadow-lg sticky top-0 z-10">
+    <div>
+      <h1 class="text-2xl font-bold">Dashboard de KFC - Análisis de Ventas</h1>
+      <h2 class="text-lg">Bienvenido, <span id="userEmail"></span></h2>
+    </div>
+    <div class="flex gap-4">
+      <button id="refreshBtn" class="bg-white text-red-600 px-4 py-2 rounded hover:bg-gray-100 border border-white transition font-semibold">
+        🔄 Actualizar
+      </button>
+      <button id="logoutBtn" class="bg-black text-white px-4 py-2 rounded hover:bg-white hover:text-red-600 border border-black transition">
+        Cerrar sesión
+      </button>
+    </div>
+  </header>
+
+  <main class="p-6 bg-gray-50 pb-20">
+    <div class="max-w-7xl mx-auto">
+      <h2 class="text-3xl font-bold text-red-600 mb-8 text-center">Reportes de Ventas KFC</h2>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <section class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-bold text-red-600 mb-4">Producto más vendido por sucursal</h3>
+          <div class="chart-container">
+            <canvas id="graficoSucursal"></canvas>
+          </div>
+        </section>
+        
+        <section class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-bold text-red-600 mb-4">Compras mayores a $40.000</h3>
+          <div class="chart-container">
+            <canvas id="graficoComprasAltas"></canvas>
+          </div>
+        </section>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <section class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-bold text-red-600 mb-4">Ventas por categoría de producto</h3>
+          <div class="chart-container">
+            <canvas id="graficoVentasCategoria"></canvas>
+          </div>
+        </section>
+        
+        <section class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-bold text-red-600 mb-4">Ventas por método de pago</h3>
+          <div class="chart-container">
+            <canvas id="graficoMetodoPago"></canvas>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <!-- Nueva sección para procedimientos almacenados -->
+  <section class="bg-white p-6 rounded-lg shadow-md mx-6 mb-6">
+    <h3 class="text-2xl font-bold text-red-600 mb-6 text-center">Procedimientos Almacenados</h3>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Registrar Nueva Compra -->
+      <div class="bg-gray-50 p-6 rounded-lg">
+        <h4 class="text-xl font-bold text-red-600 mb-4">Registrar Nueva Compra</h4>
+        <form id="registrarCompraForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Cliente ID:</label>
+            <input type="number" id="clienteId" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Sucursal ID:</label>
+            <input type="number" id="sucursalId" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pago ID:</label>
+            <input type="number" id="pagoId" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Productos (JSON):</label>
+            <textarea id="productosJson" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-400" rows="3" placeholder='[{"producto_id": 1, "cantidad": 2}, {"producto_id": 3, "cantidad": 1}]'></textarea>
+          </div>
+          <button type="submit" class="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition">
+            Registrar Compra
+          </button>
+        </form>
+      </div>
+
+      <!-- Generar Reporte de Ventas -->
+      <div class="bg-gray-50 p-6 rounded-lg">
+        <h4 class="text-xl font-bold text-red-600 mb-4">Generar Reporte de Ventas</h4>
+        <form id="generarReporteForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio:</label>
+            <input type="date" id="fechaInicio" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin:</label>
+            <input type="date" id="fechaFin" required class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-400">
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
+            Generar Reporte
+          </button>
+        </form>
+        <div id="reporteResultado" class="mt-4 p-4 bg-white rounded border hidden">
+          <h5 class="font-bold text-gray-800 mb-2">Resultado del Reporte:</h5>
+          <div id="reporteContenido" class="text-sm text-gray-600"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información de ayuda -->
+    <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <h5 class="font-bold text-yellow-800 mb-2">📋 Información de Ayuda:</h5>
+      <div class="text-sm text-yellow-700 space-y-1">
+        <p><strong>Cliente ID:</strong> 1-8 (según los clientes en la base de datos)</p>
+        <p><strong>Sucursal ID:</strong> 1-5 (según las sucursales disponibles)</p>
+        <p><strong>Método de Pago ID:</strong> 1-5 (Efectivo=1, Débito=2, Crédito=3, etc.)</p>
+        <p><strong>Producto ID:</strong> 1-10 (según los productos disponibles)</p>
+        <p><strong>Formato JSON:</strong> [{"producto_id": 1, "cantidad": 2}]</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="bg-black text-white text-center py-4">
+    © 2025, creador Felipe Angel y Dieguito lindo
+  </footer>
+
+  <script>
+    const SUPABASE_URL = 'https://ismpkafjjxdhzbpactwt.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzbXBrYWZqanhkaHpicGFjdHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwODY1MTgsImV4cCI6MjA2NTY2MjUxOH0.NE8ETwvC8c5a8zNFnQGD_CZGzNC-J8gXiUzmKMWkVeA';
+
+    // Obtener datos del usuario desde localStorage
+    function getUserData() {
+      const userData = localStorage.getItem('userData');
+      if (!userData) {
+        window.location.href = 'login.html';
+        return null;
+      }
+      return JSON.parse(userData);
+    }
+
+    // Mostrar email del usuario
+    function displayUserInfo() {
+      const user = getUserData();
+      if (user) {
+        document.getElementById('userEmail').textContent = user.email;
+      }
+    }
+
+    // Variables globales para los gráficos
+    let chartSucursal = null;
+    let chartComprasAltas = null;
+    let chartVentasCategoria = null;
+    let chartMetodoPago = null;
+
+    // Event listeners
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('userData');
+      window.location.href = 'login.html';
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', async () => {
+      try {
+        Swal.fire({
+          title: 'Actualizando...',
+          text: 'Cargando datos más recientes, por favor espere...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        await cargarTodosLosGraficos();
+        
+        Swal.fire('¡Actualizado!', 'Los gráficos se han actualizado correctamente.', 'success');
+      } catch (error) {
+        console.error('Error al actualizar:', error);
+        Swal.fire('Error', 'Se pudieron actualizar los gráficos. Intenta de nuevo.', 'error');
+      }
+    });
+
+    async function cargarTodosLosGraficos() {
+      try {
+        // Destruir gráficos existentes si existen
+        if (chartSucursal) chartSucursal.destroy();
+        if (chartComprasAltas) chartComprasAltas.destroy();
+        if (chartVentasCategoria) chartVentasCategoria.destroy();
+        if (chartMetodoPago) chartMetodoPago.destroy();
+
+        await Promise.all([
+          graficarMasVendidoPorSucursal(),
+          graficarComprasAltas(),
+          graficarVentasPorCategoria(),
+          graficarMetodoPago()
+        ]);
+      } catch (error) {
+        console.error('Error al cargar gráficos:', error);
+        throw error;
+      }
+    }
+
+    async function graficarMasVendidoPorSucursal() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vista_masvendidoporsucursal2`, {
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            Accept: 'application/json'
+          }
+        });
+        
+        if (!res.ok) throw new Error('Error al obtener datos');
+        
+        const data = await res.json();
+        
+        if (!data || data.length === 0) {
+          document.getElementById('graficoSucursal').parentElement.innerHTML =
+            `<p class="text-gray-500 text-center py-8">No hay datos disponibles para mostrar</p>`;
+          return;
+        }
+
+        const labels = data.map(row => `${row.nombre_sucursal}: ${row.nombre_producto}`);
+        const values = data.map(row => row.total_vendido);
+
+        const ctx = document.getElementById('graficoSucursal').getContext('2d');
+        chartSucursal = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Cantidad vendida',
+              data: values,
+              backgroundColor: 'rgba(220, 38, 38, 0.7)',
+              borderColor: 'rgba(220, 38, 38, 1)',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Cantidad vendida'
+                }
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: 'Sucursal y Producto'
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error en gráfico sucursal:', error);
+        document.getElementById('graficoSucursal').parentElement.innerHTML =
+          `<p class="text-red-500 text-center py-8">Error al cargar datos</p>`;
+      }
+    }
+
+    async function graficarComprasAltas() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vista_compras_mayorescuarenta`, {
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            Accept: 'application/json'
+          }
+        });
+        
+        if (!res.ok) throw new Error('Error al obtener datos');
+        
+        const data = await res.json();
+        
+        if (!data || data.length === 0) {
+          document.getElementById('graficoComprasAltas').parentElement.innerHTML =
+            `<p class="text-gray-500 text-center py-8">No hay datos disponibles para mostrar</p>`;
+          return;
+        }
+
+        const labels = data.map(row => `Compra #${row.id_compra} - ${row.nombre_cliente}`);
+        const values = data.map(row => row.total);
+
+        const ctx = document.getElementById('graficoComprasAltas').getContext('2d');
+        chartComprasAltas = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Total de compra ($)',
+              data: values,
+              backgroundColor: 'rgba(38, 70, 83, 0.7)',
+              borderColor: 'rgba(38, 70, 83, 1)',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Total ($)'
+                }
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: 'Cliente'
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error en gráfico compras altas:', error);
+        document.getElementById('graficoComprasAltas').parentElement.innerHTML =
+          `<p class="text-red-500 text-center py-8">Error al cargar datos</p>`;
+      }
+    }
+
+    async function graficarVentasPorCategoria() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vista_ventasporcategoria`, {
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            Accept: 'application/json'
+          }
+        });
+        
+        if (!res.ok) throw new Error('Error al obtener datos');
+        
+        const data = await res.json();
+        
+        if (!data || data.length === 0) {
+          document.getElementById('graficoVentasCategoria').parentElement.innerHTML =
+            `<p class="text-gray-500 text-center py-8">No hay datos de ventas por categoría</p>`;
+          return;
+        }
+
+        const labels = data.map(row => row.nombre_categoria);
+        const values = data.map(row => row.total_ventas);
+
+        const ctx = document.getElementById('graficoVentasCategoria').getContext('2d');
+        chartVentasCategoria = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Total de ventas ($)',
+              data: values,
+              backgroundColor: [
+                'rgba(220, 38, 38, 0.8)',
+                'rgba(59, 130, 130, 0.8)',
+                'rgba(161, 85, 247, 0.8)',
+                'rgba(245, 158, 11, 0.8)',
+                'rgba(139, 139, 139, 0.8)'
+              ],
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error en gráfico categorías:', error);
+        document.getElementById('graficoVentasCategoria').parentElement.innerHTML =
+          `<p class="text-red-500 text-center py-8">Error al cargar datos</p>`;
+      }
+    }
+
+    async function graficarMetodoPago() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/vista_ventaspormetodopago`, {
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            Accept: 'application/json'
+          }
+        });
+        
+        if (!res.ok) throw new Error('Error al obtener datos');
+        
+        const data = await res.json();
+        
+        if (!data || data.length === 0) {
+          document.getElementById('graficoMetodoPago').parentElement.innerHTML =
+            `<p class="text-gray-500 text-center py-8">No hay datos de ventas por método de pago</p>`;
+          return;
+        }
+
+        const labels = data.map(row => row.metodo_pago);
+        const values = data.map(row => row.total_recaudado);
+
+        const ctx = document.getElementById('graficoMetodoPago').getContext('2d');
+        chartMetodoPago = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Total recaudado ($)',
+              data: values,
+              backgroundColor: [
+                'rgba(34, 197, 94, 0.8)',
+                'rgba(59, 130, 130, 0.8)',
+                'rgba(168, 85, 247, 0.8)',
+                'rgba(251, 146, 60, 0.8)',
+                'rgba(236, 14, 71, 0.8)'
+              ],
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error en gráfico método pago:', error);
+        document.getElementById('graficoMetodoPago').parentElement.innerHTML =
+          `<p class="text-red-500 text-center py-8">Error al cargar datos</p>`;
+      }
+    }
+
+    // Inicializar dashboard
+    document.addEventListener('DOMContentLoaded', () => {
+      displayUserInfo();
+      cargarTodosLosGraficos();
+      setupProcedimientosAlmacenados();
+    });
+
+    // Configurar formularios de procedimientos almacenados
+    function setupProcedimientosAlmacenados() {
+      // Formulario para registrar compra
+      document.getElementById('registrarCompraForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await registrarNuevaCompra();
+      });
+
+      // Formulario para generar reporte
+      document.getElementById('generarReporteForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await generarReporteVentas();
+      });
+    }
+
+    // Función para registrar nueva compra usando el procedimiento almacenado
+    async function registrarNuevaCompra() {
+      try {
+        const clienteId = document.getElementById('clienteId').value;
+        const sucursalId = document.getElementById('sucursalId').value;
+        const pagoId = document.getElementById('pagoId').value;
+        const productosJson = document.getElementById('productosJson').value;
+
+        // Validar JSON
+        let productos;
+        try {
+          productos = JSON.parse(productosJson);
+        } catch (error) {
+          Swal.fire('Error', 'Formato JSON inválido en productos', 'error');
+          return;
+        }
+
+        // Llamar al procedimiento almacenado
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/registrarcompra`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            p_cliente_id: parseInt(clienteId),
+            p_sucursal_id: parseInt(sucursalId),
+            p_pago_id: parseInt(pagoId),
+            p_productos: productos
+          })
+        });
+
+        if (!res.ok) {
+          const error = await res.text();
+          throw new Error(`Error al registrar compra: ${error}`);
+        }
+
+        Swal.fire('¡Éxito!', 'Compra registrada correctamente', 'success');
+        
+        // Limpiar formulario
+        document.getElementById('registrarCompraForm').reset();
+        
+        // Actualizar gráficos
+        setTimeout(() => {
+          cargarTodosLosGraficos();
+        }, 1000);
+
+      } catch (error) {
+        console.error('Error:', error);
+        Swal.fire('Error', error.message, 'error');
+      }
+    }
+
+    // Función para generar reporte de ventas usando el procedimiento almacenado
+    async function generarReporteVentas() {
+      try {
+        const fechaInicio = document.getElementById('fechaInicio').value;
+        const fechaFin = document.getElementById('fechaFin').value;
+
+        if (!fechaInicio || !fechaFin) {
+          Swal.fire('Error', 'Por favor selecciona ambas fechas', 'error');
+          return;
+        }
+
+        if (fechaInicio > fechaFin) {
+          Swal.fire('Error', 'La fecha de inicio no puede ser mayor a la fecha fin', 'error');
+          return;
+        }
+
+        // Mostrar loading
+        Swal.fire({
+          title: 'Generando reporte...',
+          text: 'Procesando datos de ventas',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        // Llamar al procedimiento almacenado
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/generarreporteventas`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            p_fecha_inicio: fechaInicio,
+            p_fecha_fin: fechaFin
+          })
+        });
+
+        if (!res.ok) {
+          const error = await res.text();
+          throw new Error(`Error al generar reporte: ${error}`);
+        }
+
+        // Como el procedimiento usa RAISE NOTICE, necesitamos obtener los datos de otra manera
+        // Vamos a hacer una consulta directa para obtener el reporte
+        const reporteRes = await fetch(`${SUPABASE_URL}/rest/v1/compra?select=*,detalle_compra(*,producto(*))&fecha_compra=gte.${fechaInicio}&fecha_compra=lte.${fechaFin}`, {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!reporteRes.ok) {
+          throw new Error('Error al obtener datos del reporte');
+        }
+
+        const compras = await reporteRes.json();
+        
+        // Calcular totales
+        let totalVentas = 0;
+        let totalCompras = compras.length;
+        
+        compras.forEach(compra => {
+          compra.detalle_compra.forEach(detalle => {
+            totalVentas += detalle.cantidad * detalle.producto.precio;
+          });
+        });
+
+        const promedioCompra = totalCompras > 0 ? totalVentas / totalCompras : 0;
+
+        // Mostrar resultado
+        Swal.close();
+        
+        const reporteContenido = `
+          <div class="space-y-2">
+            <p><strong>Período:</strong> ${fechaInicio} al ${fechaFin}</p>
+            <p><strong>Total de ventas:</strong> $${totalVentas.toLocaleString()}</p>
+            <p><strong>Total de compras:</strong> ${totalCompras}</p>
+            <p><strong>Promedio por compra:</strong> $${promedioCompra.toLocaleString()}</p>
+          </div>
+        `;
+
+        document.getElementById('reporteContenido').innerHTML = reporteContenido;
+        document.getElementById('reporteResultado').classList.remove('hidden');
+
+        Swal.fire('¡Reporte Generado!', 'El reporte se ha generado correctamente', 'success');
+
+      } catch (error) {
+        console.error('Error:', error);
+        Swal.fire('Error', error.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html> 

@@ -2,193 +2,100 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Login - EJEMPLO TITULO</title>
-  <!-- Tailwind CSS CDN para estilos rápidos y responsivos -->
+  <title>Login - Proyecto KFC</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- SweetAlert2 CDN para mostrar alertas bonitas -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <!-- Chart.js CDN para gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* Sombra personalizada para tarjetas, puedes ajustar el color o intensidad aquí */
     .custom-shadow { box-shadow: 0 4px 24px 0 rgba(220,38,38,0.15); }
+    .chart-container { position: relative; height:250px; width:100%; }
   </style>
 </head>
-<body class="bg-gradient-to-br from-white via-red-50 to-gray-100 min-h-screen flex flex-col justify-between">
-  <!-- HEADER: Cambia los textos entre los h1 y h2 a tu preferencia -->
+<body class="bg-gradient-to-br from-white via-red-50 to-gray-100">
   <header class="flex justify-between items-center p-6 bg-red-600 text-white shadow-lg sticky top-0 z-10">
     <div>
-      <!-- Título principal, cámbialo por el nombre de tu app o empresa -->
-      <h1 class="text-2xl font-bold tracking-wide drop-shadow">Ingrese ala cuenta mi rey</h1>
-      <!-- Subtítulo, puedes poner un slogan o descripción corta -->
+      <h1 class="text-2xl font-bold tracking-wide drop-shadow">Ingrese a la cuenta mi rey</h1>
       <h2 class="text-lg italic opacity-90">Ingrese sus credenciales</h2>
     </div>
-    <!-- Botón para volver al inicio (index.html) -->
     <a href="index.html" class="bg-black text-white px-5 py-2 rounded-lg hover:bg-white hover:text-red-600 border-2 border-black transition font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-red-400">Inicio</a>
   </header>
 
-  <!-- MAIN CONTENT: Formulario de Login -->
   <main class="flex-1 flex flex-col items-center justify-center">
     <section class="w-full max-w-sm bg-white/95 p-8 rounded-xl custom-shadow border-t-8 border-red-600 mt-10 mb-10">
-      <!-- Título del formulario -->
       <h2 class="text-2xl font-bold text-red-600 mb-6 text-center drop-shadow">Iniciar Sesión</h2>
       <form id="loginForm" class="flex flex-col gap-5">
-        <!-- Campo de email: el usuario debe ingresar su correo registrado -->
         <input type="email" id="email" placeholder="Correo electrónico" required class="p-3 border border-black rounded focus:outline-none focus:ring-2 focus:ring-red-400" />
-        <!-- Campo de contraseña: el usuario debe ingresar su contraseña -->
         <input type="password" id="password" placeholder="Contraseña" required class="p-3 border border-black rounded focus:outline-none focus:ring-2 focus:ring-red-400" />
-        <!-- Botón de enviar el formulario -->
         <button type="submit" class="bg-red-600 text-white py-2 rounded-lg hover:bg-black transition font-semibold shadow-md">Entrar</button>
       </form>
     </section>
   </main>
 
-  <!-- FOOTER: Puedes poner tu nombre, año, etc. -->
   <footer class="bg-black text-white text-center py-4 mt-8 shadow-inner">
-    © 2025, creador Felipe Angel
+    © 2025, creador Felipe Angel y Dieguito lindo
   </footer>
 
   <script>
-    // ====== CONFIGURACIÓN SUPABASE ======
-    // Reemplaza 'https://TU_SUPABASE_URL.supabase.co' por la URL de tu proyecto Supabase
-    // Ejemplo: 'https://abcd1234.supabase.co'
-    const SUPABASE_URL = 'https://ismpkafjjxdhzbpactwt.supabase.co'; // <-- PON AQUÍ TU URL DE SUPABASE
-    // Reemplaza 'TU_SUPABASE_KEY' por tu API Key de Supabase (puedes usar la anon/public key para pruebas)
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzbXBrYWZqanhkaHpicGFjdHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwODY1MTgsImV4cCI6MjA2NTY2MjUxOH0.NE8ETwvC8c5a8zNFnQGD_CZGzNC-J8gXiUzmKMWkVeA'; // <-- PON AQUÍ TU API KEY DE SUPABASE
+    const SUPABASE_URL = 'https://ismpkafjjxdhzbpactwt.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzbXBrYWZqanhkaHpicGFjdHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwODY1MTgsImV4cCI6MjA2NTY2MjUxOH0.NE8ETwvC8c5a8zNFnQGD_CZGzNC-J8gXiUzmKMWkVeA';
 
-    // ====== HASHING DE CONTRASEÑA (SHA-256) ======
-    // Esta función convierte la contraseña en un hash seguro antes de enviarla/compararla
     async function hashPassword(password) {
-      const encoder = new TextEncoder(); // Codifica la contraseña como bytes
-      const data = encoder.encode(password); // Convierte a Uint8Array
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data); // Aplica SHA-256
-      const hashArray = Array.from(new Uint8Array(hashBuffer)); // Convierte a array
-      // Convierte cada byte a hexadecimal y lo une en un string
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // ====== FUNCIÓN PARA CONSULTAR USUARIO EN SUPABASE ======
-    // Busca el usuario por email en la tabla 'usuarios' de tu base de datos Supabase
     async function fetchUser(email) {
-      // Construye la URL para filtrar por email (usa eq. para 'igual a')
       const res = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(email)}`, {
         headers: {
-          'apikey': SUPABASE_KEY, // Tu API Key de Supabase
-          'Authorization': `Bearer ${SUPABASE_KEY}`, // También tu API Key
-          'Content-Type': 'application/json', // Espera JSON
-          'Accept': 'application/json', // Acepta JSON
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
       });
-      // Si la respuesta no es OK, lanza error
       if (!res.ok) throw new Error('Error al conectar con Supabase');
-      // Convierte la respuesta a JSON (array de usuarios)
       const data = await res.json();
-      // Devuelve el primer usuario encontrado (o undefined si no existe)
       return { user: data[0], error: null };
     }
 
-    // ====== VALIDACIÓN LOGIN ======
-    // Escucha el evento submit del formulario de login
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault(); // Evita que la página se recargue
-      const email = document.getElementById('email').value.trim(); // Obtiene el email ingresado
-      const password = document.getElementById('password').value; // Obtiene la contraseña ingresada
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
 
-      // Validación básica: ambos campos deben estar llenos
       if (!email || !password) {
         Swal.fire('Error', 'Por favor, completa todos los campos.', 'error');
         return;
       }
 
-      // Hashea la contraseña antes de enviarla/compararla
       const password_hash = await hashPassword(password);
 
-      // Consulta a Supabase para buscar el usuario
       try {
-        const { user, error } = await fetchUser(email); // Busca el usuario por email
-        if (error) throw new Error(error); // Si hay error, lo muestra
+        const { user, error } = await fetchUser(email);
+        if (error) throw new Error(error);
         if (!user) {
-          // Si no existe el usuario, muestra alerta
           Swal.fire('Error', 'Usuario no encontrado.', 'error');
           return;
         }
-        // Compara el hash de la contraseña ingresada con el almacenado
         if (user.password_hash !== password_hash) {
           Swal.fire('Error', 'Contraseña incorrecta.', 'error');
           return;
         }
-        // Si todo está bien, login exitoso
         Swal.fire('¡Bienvenido!', `Hola, ${user.email}`, 'success').then(() => {
-          mostrarBienvenida(user); // Muestra la página de bienvenida
+          // Guardar datos del usuario en localStorage
+          localStorage.setItem('userData', JSON.stringify(user));
+          // Redirigir al dashboard
+          window.location.href = 'dashboard.html';
         });
       } catch (err) {
-        // Si ocurre cualquier error, lo muestra
         Swal.fire('Error', err.message, 'error');
       }
     });
-    
-    // ====== MOSTRAR PÁGINA DE BIENVENIDA Y GRÁFICO ======
-    // Esta función reemplaza el contenido del body por la bienvenida y el gráfico
-    function mostrarBienvenida(user) {
-      document.body.innerHTML = `
-        <header class=\"flex justify-between items-center p-6 bg-red-600 text-white\">
-          <div>
-            <h1 class=\"text-2xl font-bold\">Bienvenido, ${user.email}</h1>
-            <h2 class=\"text-lg\">Ingrese a su cuentesita mi rey</h2>
-          </div>
-          <button id=\"logoutBtn\" class=\"bg-black text-white px-4 py-2 rounded hover:bg-white hover:text-red-600 border border-black transition\">Cerrar sesión</button>
-        </header>
-        <main class=\"flex-1 flex flex-col items-center justify-center\">
-          <section class=\"text-center\">
-            <h2 class=\"text-3xl font-bold text-red-600 mb-4\">¡Bienvenido!</h2>
-            <p class=\"text-lg text-black mb-8\">Has iniciado sesión correctamente.</p>
-            <canvas id=\"myChart\" width=\"400\" height=\"200\"></canvas>
-          </section>
-        </main>
-        <footer class=\"bg-black text-white text-center py-4\">
-          © 2025, creador Felipe Angel
-        </footer>
-      `;
-      // El botón de logout recarga la página de login
-      document.getElementById('logoutBtn').onclick = () => location.href = 'login.html';
-      // Llama a la función para mostrar el gráfico
-      setTimeout(renderChart, 100);
-    }
-<!-- Eliminado: los canvas no deben estar dentro del script -->
 
-    // ====== GRÁFICO CON CHART.JS ======
-    // Esta función crea un gráfico de barras con los colores KFC
-    function renderChart() {
-      const ctx = document.getElementById('myChart').getContext('2d'); // Obtiene el contexto del canvas
-      new Chart(ctx, {
-        type: 'bar', // Tipo de gráfico
-        data: {
-          labels: ['Rojo', 'Blanco', 'Negro'], // Etiquetas de las barras
-          datasets: [{
-            label: 'Colores KFC', // Leyenda del gráfico
-            data: [12, 19, 7], // Valores de ejemplo
-            backgroundColor: [
-              'rgba(220, 38, 38, 0.8)', // rojo
-              'rgba(255, 255, 255, 0.8)', // blanco
-              'rgba(0, 0, 0, 0.8)' // negro
-            ],
-            borderColor: [
-              'rgba(220, 38, 38, 1)', // borde rojo
-              'rgba(0,0,0,0.1)', // borde blanco
-              'rgba(0,0,0,1)' // borde negro
-            ],
-            borderWidth: 1 // Grosor del borde
-          }]
-        },
-        options: {
-          scales: {
-            y: { beginAtZero: true } // El eje Y empieza en 0
-          }
-        }
-      });
-    }
+    // El resto del código del dashboard se movió a dashboard.html
   </script>
-    <canvas id="graficoSucursal" width="400" height="200"></canvas>
-    <canvas id="graficoComprasAltas" width="400" height="200"></canvas>
 </body>
-</html> 
+</html>

@@ -41,7 +41,8 @@ async function hashPassword(password) {
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault(); // Evita que la página se recargue
   const email = document.getElementById('email').value.trim(); // Obtiene el email ingresado
-  const password = document.getElementById('password').value; // Obtiene la contraseña ingresada
+  const password = document.getElementById('password').val
+  gitue; // Obtiene la contraseña ingresada
 
   // Validación básica: ambos campos deben estar llenos
   if (!email || !password) {
@@ -115,7 +116,7 @@ function mostrarBienvenida(user) {
       </section>
     </main>
     <footer class="bg-black text-white text-center py-4">
-      © 2025, creador Felipe Angel
+      © 2025, creador Felipe Angel y Dieguito, todos los derechos reservados.
     </footer>
   `;
   // El botón de logout recarga la página
